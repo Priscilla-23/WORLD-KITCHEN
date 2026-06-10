@@ -1,33 +1,55 @@
-function repairImagePath(image) {
-  const source = image.getAttribute("src") || "";
-  if (!source.startsWith("assets/")) return;
+(function () {
+  var publicFallbacks = {
+    jollof: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/JOLLOF_RICE.JPG/960px-JOLLOF_RICE.JPG",
+    fufu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Light_soup_with_fufu.JPG/330px-Light_soup_with_fufu.JPG",
+    waakye: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Waakye_2.jpg/500px-Waakye_2.jpg"
+  };
 
-  const fallback = source.replace(/^assets\//, "");
-  if (image.dataset.fallbackSrc === fallback) return;
+  function fallbackKey(src) {
+    var value = (src || "").toLowerCase();
+    if (value.indexOf("assets/jollof.jpg") !== -1) return "jollof";
+    if (value.indexOf("assets/fufu.jpg") !== -1) return "fufu";
+    if (value.indexOf("assets/waakye.jpg") !== -1) return "waakye";
+    return "";
+  }
 
-  image.dataset.fallbackSrc = fallback;
-  image.src = fallback;
-}
+  function fallbackSrc(key) {
+    var embedded = window.worldKitchenEmbeddedImages || {};
+    return embedded[key] || publicFallbacks[key] || "";
+  }
 
-document.addEventListener("error", (event) => {
-  const target = event.target;
-  if (target instanceof HTMLImageElement) repairImagePath(target);
-}, true);
+  function applyFallback(img) {
+    if (!img || img.tagName !== "IMG" || img.dataset.africanFallbackApplied === "true") return;
+    var key = fallbackKey(img.getAttribute("src") || img.currentSrc || "");
+    var nextSrc = fallbackSrc(key);
+    if (!nextSrc) return;
+    img.dataset.africanFallbackApplied = "true";
+    img.src = nextSrc;
+  }
 
-document.querySelectorAll("img").forEach((image) => {
-  if (image.complete && image.naturalWidth === 0) repairImagePath(image);
-});
+  function checkImage(img) {
+    if (!img || img.tagName !== "IMG") return;
+    if (!fallbackKey(img.getAttribute("src") || img.currentSrc || "")) return;
+    img.addEventListener("error", function () {
+      applyFallback(img);
+    }, { once: true });
+    if (img.complete && img.naturalWidth === 0) applyFallback(img);
+  }
 
-const imageObserver = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (!(node instanceof Element)) return;
-      if (node instanceof HTMLImageElement && node.complete && node.naturalWidth === 0) repairImagePath(node);
-      node.querySelectorAll("img").forEach((image) => {
-        if (image.complete && image.naturalWidth === 0) repairImagePath(image);
+  window.addEventListener("error", function (event) {
+    applyFallback(event.target);
+  }, true);
+
+  window.addEventListener("load", function () {
+    document.querySelectorAll("img").forEach(checkImage);
+  });
+
+  new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      mutation.addedNodes.forEach(function (node) {
+        if (node.tagName === "IMG") checkImage(node);
+        if (node.querySelectorAll) node.querySelectorAll("img").forEach(checkImage);
       });
     });
-  });
-});
-
-imageObserver.observe(document.body, { childList: true, subtree: true });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+}());
