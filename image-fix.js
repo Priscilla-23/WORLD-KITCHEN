@@ -2,7 +2,8 @@
   var publicFallbacks = {
     jollof: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/JOLLOF_RICE.JPG/960px-JOLLOF_RICE.JPG",
     fufu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Light_soup_with_fufu.JPG/330px-Light_soup_with_fufu.JPG",
-    waakye: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Waakye_2.jpg/500px-Waakye_2.jpg"
+    waakye: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Waakye_2.jpg/500px-Waakye_2.jpg",
+    carbonara: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Spaghetti_alla_carbonara_classica.jpg/640px-Spaghetti_alla_carbonara_classica.jpg"
   };
 
   function fallbackKey(src) {
@@ -10,6 +11,7 @@
     if (value.indexOf("assets/jollof.jpg") !== -1) return "jollof";
     if (value.indexOf("assets/fufu.jpg") !== -1) return "fufu";
     if (value.indexOf("assets/waakye.jpg") !== -1) return "waakye";
+    if (value.indexOf("assets/spaghetti-carbonara.jpg") !== -1) return "carbonara";
     return "";
   }
 
